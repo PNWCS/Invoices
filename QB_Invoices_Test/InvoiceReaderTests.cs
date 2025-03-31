@@ -2,6 +2,8 @@ using System.Diagnostics;
 using Serilog;
 using QBFC16Lib;
 using static QB_Invoices_Test.CommonMethods;
+using QB_Invoices_Lib;
+
 
 namespace QB_Invoices_Test
 {
@@ -110,7 +112,7 @@ namespace QB_Invoices_Test
                 }
 
                 // 5) Query & verify
-                var allInvoices = InvoiceReader.QueryAllInvoices();
+                var allInvoices = Customer_Reader.QueryAllInvoices();
 
                 // For each created invoice, assert we see it among the queried results.
                 foreach (var invInfo in invoiceTestData)
@@ -217,7 +219,7 @@ namespace QB_Invoices_Test
         )
         {
             IMsgSetRequest request = qbSession.CreateRequestSet();
-            IInvoiceAddRq invoiceAddRq = request.AppendInvoiceAddRq();
+            IInvoiceAdd invoiceAddRq = request.AppendInvoiceAddRq();
 
             // Reference the customer by ListID
             invoiceAddRq.CustomerRef.ListID.SetValue(customerListID);
@@ -226,7 +228,7 @@ namespace QB_Invoices_Test
             invoiceAddRq.RefNumber.SetValue("Inv_" + Guid.NewGuid().ToString("N").Substring(0, 5));
 
             // Use the consecutive company ID in the Memo
-            string memo = companyID;
+            string memo = "CompanyID_" + companyID;
             invoiceAddRq.Memo.SetValue(memo);
 
             invoiceAddRq.TxnDate.SetValue(DateTime.Today);
