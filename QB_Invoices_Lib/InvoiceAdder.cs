@@ -7,98 +7,80 @@ using static System.Collections.Specialized.BitVector32;
 
 public class InvoiceAdder
 {
-    public string CreateInvoice()
+    public static void AddInvoices(List<Invoice> invoices)
     {
         using (var qbSession = new QuickBooksSession(AppConfig.QB_APP_NAME))
         {
-            // Taking user input for customer name, invoice date, invoice number, invoice amount
-            Console.WriteLine("Enter the Customer Name: ");
-            string customerName = Console.ReadLine()?.Trim();
-            if (string.IsNullOrEmpty(customerName))
+            foreach (var invoice in invoices)
             {
-                Console.WriteLine("Error: Customer Name cannot be empty.");
-                return string.Empty;
-            }
+                Console.WriteLine($" Processing invoice for customer: {invoice.CustomerName}");
 
-            // Check if the customer exists in QuickBooks
-            string customerListID = GetCustomerListID(qbSession, customerName);
-            if (string.IsNullOrEmpty(customerListID))
-            {
-                Console.WriteLine("Error: Customer not found in QuickBooks.");
-                return string.Empty;
-            }
-
-            DateTime invoiceDate;
-            Console.WriteLine("Enter the Invoice Date (yyyy-mm-dd): ");
-            if (!DateTime.TryParse(Console.ReadLine(), out invoiceDate))
-            {
-                Console.WriteLine("Error: Invalid Date format.");
-                return string.Empty;
-            }
-
-
-
-            Console.WriteLine("Enter the Invoice Number: ");
-            string invoiceNumber = Console.ReadLine()?.Trim();
-            if (string.IsNullOrEmpty(invoiceNumber))
-            {
-                Console.WriteLine("Error: Invoice Number cannot be empty.");
-                return string.Empty;
-            }
-
-            // Taking user input for parts and quantities
-            List<(string itemListID, int quantity)> items = new List<(string itemListID, int quantity)>();
-            while (true)
-            {
-                Console.WriteLine("Enter Item Name (or type 'done' to finish): ");
-                string partName = Console.ReadLine()?.Trim();
-                if (partName?.ToLower() == "done")
-                    break;
-
-                if (string.IsNullOrEmpty(partName))
+                if (!invoice.TxnDate.HasValue)
                 {
-                    Console.WriteLine("Error: Item Name cannot be empty.");
+                    Console.WriteLine(" Error: Invoice date is missing.");
                     continue;
                 }
 
-                string itemListID = GetItemListID(qbSession, partName);
-                if (string.IsNullOrEmpty(itemListID))
+                if (string.IsNullOrWhiteSpace(invoice.RefNumber))
                 {
-                    Console.WriteLine($"Error: Item '{partName}' not found in QuickBooks.");
+                    Console.WriteLine(" Error: Invoice number is missing.");
                     continue;
                 }
 
-                Console.WriteLine($"Enter quantity for {partName}: ");
-                int quantity;
-                if (!int.TryParse(Console.ReadLine(), out quantity) || quantity <= 0)
+                string customerListID = GetCustomerListID(qbSession, invoice.CustomerName);
+                if (string.IsNullOrEmpty(customerListID))
                 {
-                    Console.WriteLine("Error: Quantity must be a positive integer.");
+                    Console.WriteLine($" Error: Customer '{invoice.CustomerName}' not found in QuickBooks.");
                     continue;
                 }
 
-                items.Add((itemListID, quantity));
-            }
+                var itemList = new List<(string itemListID, int quantity)>();
 
-            if (items.Count == 0)
-            {
-                Console.WriteLine("Error: No parts were added to the invoice.");
-                return string.Empty;
-            }
+                foreach (var item in invoice.LineItems)
+                {
+                    if (string.IsNullOrWhiteSpace(item.ItemName))
+                    {
+                        Console.WriteLine(" Skipping item with empty name.");
+                        continue;
+                    }
 
-            // Call the method to create the invoice
-            try
-            {
-                return CreateInvoice(qbSession, customerListID, invoiceDate, invoiceNumber, items);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: Failed to create invoice. {ex.Message}");
-                return string.Empty;
+                    string itemListID = GetItemListID(qbSession, item.ItemName);
+                    if (string.IsNullOrEmpty(itemListID))
+                    {
+                        Console.WriteLine($" Error: Item '{item.ItemName}' not found in QuickBooks.");
+                        continue;
+                    }
+
+                    if (!item.Quantity.HasValue || item.Quantity <= 0)
+                    {
+                        Console.WriteLine($" Error: Invalid quantity for item '{item.ItemName}'.");
+                        continue;
+                    }
+
+                    itemList.Add((itemListID, item.Quantity.Value));
+                }
+
+                if (itemList.Count == 0)
+                {
+                    Console.WriteLine(" Skipping invoice: no valid line items.");
+                    continue;
+                }
+
+                try
+                {
+                    string txnID = CreateInvoice(qbSession, customerListID, invoice.TxnDate.Value, invoice.RefNumber, itemList);
+                    Console.WriteLine($" Invoice created successfully. TxnID: {txnID}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($" Failed to create invoice: {ex.Message}");
+                }
             }
         }
     }
 
-    private string GetCustomerListID(QuickBooksSession qbSession, string customerName)
+
+    private static string GetCustomerListID(QuickBooksSession qbSession, string customerName)
     {
         IMsgSetRequest request = qbSession.CreateRequestSet();
         ICustomerQuery customerQueryRq = request.AppendCustomerQueryRq();
@@ -115,10 +97,10 @@ public class InvoiceAdder
         return string.Empty;
     }
 
-    private string GetItemListID(QuickBooksSession qbSession, string itemName)
+    private static string GetItemListID(QuickBooksSession qbSession, string itemName)
     {
         // Log the item being searched
-        Console.WriteLine($"Searching for item: {itemName}");
+        //Console.WriteLine($"Searching for item: {itemName}");
 
         IMsgSetRequest request = qbSession.CreateRequestSet();
         IItemQuery itemQueryRq = request.AppendItemQueryRq();
@@ -163,7 +145,7 @@ public class InvoiceAdder
 
             if (!string.IsNullOrEmpty(itemNameFound) && !string.IsNullOrEmpty(itemListID))
             {
-                Console.WriteLine($"Item found: {itemNameFound}, ListID: {itemListID}");
+                //Console.WriteLine($"Item found: {itemNameFound}, ListID: {itemListID}");
                 return itemListID;
             }
             else
@@ -181,7 +163,7 @@ public class InvoiceAdder
     }
 
 
-    private string CreateInvoice(QuickBooksSession qbSession, string customerListID, DateTime invoiceDate, string invoiceNumber, List<(string itemListID, int quantity)> items)
+    private static string CreateInvoice(QuickBooksSession qbSession, string customerListID, DateTime invoiceDate, string invoiceNumber, List<(string itemListID, int quantity)> items)
     {
         IMsgSetRequest request = qbSession.CreateRequestSet();
         IInvoiceAdd invoiceAddRq = request.AppendInvoiceAddRq();
