@@ -1,5 +1,4 @@
 ﻿using QBFC16Lib;
-using System;
 
 namespace QB_Invoices_Lib
 {

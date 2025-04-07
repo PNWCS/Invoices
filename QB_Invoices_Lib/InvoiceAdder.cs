@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using QB_Invoices_Lib;
+﻿using QB_Invoices_Lib;
 using QBFC16Lib;
-using static System.Collections.Specialized.BitVector32;
 
 public class InvoiceAdder
 {
@@ -68,7 +64,7 @@ public class InvoiceAdder
 
                 try
                 {
-                    string txnID = CreateInvoice(qbSession, customerListID, invoice.TxnDate.Value, invoice.RefNumber, itemList);
+                    string txnID = CreateInvoice(qbSession, customerListID, invoice.TxnDate.Value, invoice.RefNumber, invoice.Memo, itemList);
                     Console.WriteLine($" Invoice created successfully. TxnID: {txnID}");
                 }
                 catch (Exception ex)
@@ -163,7 +159,7 @@ public class InvoiceAdder
     }
 
 
-    private static string CreateInvoice(QuickBooksSession qbSession, string customerListID, DateTime invoiceDate, string invoiceNumber, List<(string itemListID, int quantity)> items)
+    private static string CreateInvoice(QuickBooksSession qbSession, string customerListID, DateTime invoiceDate, string invoiceNumber, string memo, List<(string itemListID, int quantity)> items)
     {
         IMsgSetRequest request = qbSession.CreateRequestSet();
         IInvoiceAdd invoiceAddRq = request.AppendInvoiceAddRq();
@@ -171,7 +167,7 @@ public class InvoiceAdder
         invoiceAddRq.CustomerRef.ListID.SetValue(customerListID);
         invoiceAddRq.TxnDate.SetValue(invoiceDate);
         invoiceAddRq.RefNumber.SetValue(invoiceNumber);
-        // invoiceAddRq.Memo.SetValue($"Invoice Amount: {invoiceAmount}");
+        invoiceAddRq.Memo.SetValue(memo);
 
         foreach (var item in items)
         {

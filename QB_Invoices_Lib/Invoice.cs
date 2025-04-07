@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace QB_Invoices_Lib
 {
@@ -25,6 +21,7 @@ namespace QB_Invoices_Lib
         public bool? IsPending { get; set; }
         public bool? IsFinanceCharge { get; set; }
         public string? PONumber { get; set; }
+        public string? Memo { get; set; }
         public string? TermsRef { get; set; }
         public DateTime? DueDate { get; set; }
         public string? SalesRepRef { get; set; }

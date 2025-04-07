@@ -1,5 +1,4 @@
 ﻿// Mappers/InvoiceMapper.cs
-using QB_Invoices_Lib;
 using QBFC16Lib; // Assuming QBFC16Lib is referenced for QuickBooks integration
 
 namespace QB_Invoices_Lib

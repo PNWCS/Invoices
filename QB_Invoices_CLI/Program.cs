@@ -1,7 +1,4 @@
 ﻿using QB_Invoices_Lib;
-using QBFC16Lib;
-using System;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace invoice
 {
@@ -29,6 +26,7 @@ namespace invoice
                     while (true)
                     {
                         Invoice inv = PromptInvoiceInput();
+                        inv.Memo = "PNW";
                         invoiceList.Add(inv);
 
                         Console.WriteLine("Add another invoice? (y/n): ");
@@ -44,6 +42,7 @@ namespace invoice
                         CustomerName = "Musharaf Ahmed",
                         TxnDate = DateTime.Now,
                         RefNumber = "INV-123456",
+                        Memo = "PNW",
                         LineItems = new List<InvoiceLineItemDto>
                 {
                     new InvoiceLineItemDto { ItemName = "Laptop", Quantity = 1 },
@@ -54,6 +53,7 @@ namespace invoice
                         CustomerName = "Shazeb Khan",
                         TxnDate = DateTime.Now,
                         RefNumber = "INV-123457",
+                        Memo = "PNW",
                         LineItems = new List<InvoiceLineItemDto>
                 {
                     new InvoiceLineItemDto { ItemName = "Laptop", Quantity = 1 },
@@ -66,6 +66,7 @@ namespace invoice
                         CustomerName = "Mustafa Hussain",
                         TxnDate = DateTime.Now,
                         RefNumber = "INV-123459",
+                        Memo = "PNW",
                         LineItems = new List<InvoiceLineItemDto>
                         {
 
