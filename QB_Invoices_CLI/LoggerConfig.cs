@@ -11,7 +11,7 @@ namespace QB_Invoices_CLI
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .WriteTo.Console() 
+                .WriteTo.Console()
                 .WriteTo.File("logs/qb_sync.log",
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 7,

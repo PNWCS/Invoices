@@ -112,7 +112,7 @@ namespace QB_Invoices_Test
                 }
 
                 // 5) Query & verify
-                var allInvoices = Customer_Reader.QueryAllInvoices();
+                var allInvoices = Inovice_Reader.QueryAllInvoices();
 
                 // For each created invoice, assert we see it among the queried results.
                 foreach (var invInfo in invoiceTestData)
