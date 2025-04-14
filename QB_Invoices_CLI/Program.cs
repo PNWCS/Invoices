@@ -23,7 +23,7 @@ namespace invoice
                     // Query and display all invoices
                     try
                     {
-                        var allInvoices = Inovice_Reader.QueryAllInvoices();
+                        var allInvoices = InoviceReader.QueryAllInvoices();
                         if (allInvoices.Count > 0)
                         {
                             foreach (var invoice in allInvoices)
