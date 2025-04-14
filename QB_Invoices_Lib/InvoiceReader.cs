@@ -2,7 +2,7 @@
 
 namespace QB_Invoices_Lib
 {
-    public class InoviceReader
+    public class InvoiceReader
     {
         public static List<Invoice> QueryAllInvoices()
         {
