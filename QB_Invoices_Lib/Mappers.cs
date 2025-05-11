@@ -16,6 +16,7 @@ namespace QB_Invoices_Lib
                 InoviceAmount = (decimal?)(invoice.Subtotal?.GetValue()),
                 BalanceRemaining = (decimal?)invoice.BalanceRemaining?.GetValue(),
                 CompanyID = invoice.Memo?.GetValue(),
+                Memo = invoice.Memo?.GetValue(),
             };
             // Map line items (parts)
             if (invoice.ORInvoiceLineRetList != null)

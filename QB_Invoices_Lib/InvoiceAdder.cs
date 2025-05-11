@@ -64,6 +64,7 @@ public class InvoiceAdder
 
                 try
                 {
+                    invoice.Status = InvoiceStatus.Added;
                     string txnID = CreateInvoice(qbSession, customerListID, invoice.InvoiceDate.Value, invoice.InvoiceNumber, invoice.Memo, itemList);
                     invoice.TxnID = txnID;
                     Console.WriteLine($" Invoice created successfully. TxnID: {txnID}");

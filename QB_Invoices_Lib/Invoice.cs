@@ -14,6 +14,8 @@ namespace QB_Invoices_Lib
         public decimal? BalanceRemaining { get; set; }
         public string? CompanyID { get; set; }
 
+        public InvoiceStatus Status { get; set; } = InvoiceStatus.Unknown; // Default status
+
         public List<InvoiceLineItemDto> LineItems { get; set; } = new List<InvoiceLineItemDto>(); // New property for parts
 
         public override string ToString()
@@ -51,5 +53,12 @@ namespace QB_Invoices_Lib
 
     }
 
-
+    public enum InvoiceStatus
+    {
+        Unknown,
+        Unchanged,
+        Different,
+        Missing,
+        Added
+    }
 }

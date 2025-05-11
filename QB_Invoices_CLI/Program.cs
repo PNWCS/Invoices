@@ -11,6 +11,7 @@ namespace invoice
             Console.WriteLine("2: Add Multiple Invoices");
             Console.WriteLine("3: Add Multiple Manually Invoices");
             Console.WriteLine("4: Query All Invoices");
+            Console.WriteLine("5:Invoices Comparaotr");
 
             string option = Console.ReadLine();
 
@@ -102,6 +103,63 @@ namespace invoice
                         Console.WriteLine($"Error: {ex.Message}");
                     }
                     break;
+
+                case "5":
+                    List<Invoice> companyInvoiceList = new List<Invoice>();
+                    var companyInvoice1 = new Invoice
+                    {
+                        CustomerName = "Musharaf Ahmed",
+                        InvoiceDate = DateTime.Parse("04/28/2025"),
+                        InvoiceNumber = "INV-123456",
+                        InoviceAmount = 500,
+                        Memo = "PNW",
+                        LineItems = new List<InvoiceLineItemDto>
+                {
+                    new InvoiceLineItemDto { ItemName = "Laptop", Quantity = 1 },
+                }
+                    };
+                    var companyInvoice2 = new Invoice
+                    {
+                        CustomerName = "Shazeb Khan",
+                        InvoiceDate = DateTime.Parse("04/28/2025"),
+                        InvoiceNumber = "INV-123457",
+                        InoviceAmount = 570,
+                        Memo = "PNW",
+                        LineItems = new List<InvoiceLineItemDto>
+                {
+                    new InvoiceLineItemDto { ItemName = "Laptop", Quantity = 1 },
+                    new InvoiceLineItemDto { ItemName = "Mouse", Quantity = 2 },
+                    new InvoiceLineItemDto { ItemName = "Keyboard", Quantity = 1 }
+                }
+                    };
+                    var companyInvoice3 = new Invoice
+                    {
+                        CustomerName = "Nithin",
+                        InvoiceDate = DateTime.Parse("04/28/2025"),
+                        InvoiceNumber = "INV-1234599",
+                        InoviceAmount = 570,
+                        Memo = "PNW",
+                        LineItems = new List<InvoiceLineItemDto>
+                {
+                    new InvoiceLineItemDto { ItemName = "Laptop", Quantity = 1 },
+                    new InvoiceLineItemDto { ItemName = "Mouse", Quantity = 2 },
+                    new InvoiceLineItemDto { ItemName = "Keyboard", Quantity = 1 }
+                }
+                    };
+
+
+                    companyInvoiceList.Add(companyInvoice1);
+                    companyInvoiceList.Add(companyInvoice2);
+                    companyInvoiceList.Add(companyInvoice3);
+                    List<Invoice> inoivces = InvoicesComparator.CompareInvoices(companyInvoiceList);
+                    foreach (var inoivce in inoivces)
+                    {
+                        Console.WriteLine($"Invoice {inoivce.InvoiceNumber} has the {inoivce.Status} Status");
+                    }
+
+                    Console.WriteLine("Data Sync Completed");
+                    break;
+
 
                 default:
                     Console.WriteLine("Invalid option, please select 1 or 2 or 3 or 4.");
