@@ -25,14 +25,15 @@ namespace QB_Invoices_Test
             var initialInvoices = BuildRandomInvoices(5);
 
             // 2️⃣  FIRST compare – every invoice should be Added ➜ QB
-            var firstCompare = InvoicesComparator.CompareInvoices(initialInvoices);
-            Log.Information("First Compare:");
 
-            foreach (var inv in firstCompare.Where(i => initialInvoices.Any(x => x.InvoiceNumber == i.InvoiceNumber)))
+            var firstCompare = InvoicesComparator.CompareInvoices(initialInvoices);
+
+            foreach (var inv in firstCompare.Where(i => initialInvoices.Any(x => x.CompanyID == i.CompanyID)))
                 Assert.Equal(InvoiceStatus.Added, inv.Status);
 
             // 3️⃣  Mutate data set → Missing, Different, Unchanged scenarios
             var updatedInvoices = new List<Invoice>(initialInvoices);
+
 
             var missingInv = updatedInvoices[0];                 // simulate “Missing”
             var diffInv = updatedInvoices[1];                 // simulate “Different”
@@ -52,10 +53,12 @@ namespace QB_Invoices_Test
             // 5️⃣  Clean-up – delete test invoices from QB
             try
             {
+
                 var added = initialInvoices
                 .Select(init => firstCompare.FirstOrDefault(fc => fc.InvoiceNumber == init.InvoiceNumber))
                 .Where(fc => fc != null && !string.IsNullOrEmpty(fc.TxnID))
                 .ToList();
+
                 if (added.Count > 0)
                 {
                     using var qb = new QuickBooksSession(AppConfig.QB_APP_NAME);
@@ -73,6 +76,7 @@ namespace QB_Invoices_Test
             var logs = File.ReadAllText(logFile);
 
             Assert.Contains("InvoicesComparator Initialized", logs);
+
             Assert.Contains("InvoicesComparator Completed", logs);
 
             void AssertStatusLogged(IEnumerable<Invoice> list)
@@ -95,6 +99,7 @@ namespace QB_Invoices_Test
                 string companyId = Guid.NewGuid().ToString("N").Substring(0, 8);
                 var inv = new Invoice
                 {
+
                     CompanyID = Guid.NewGuid().ToString("N").Substring(0, 8),
                     CustomerName = TEST_CUSTOMER,
                     InvoiceDate = DateTime.Today,
@@ -107,9 +112,11 @@ namespace QB_Invoices_Test
                         new InvoiceLineItemDto
                         {
                             ItemName = "TestItem",
+
                             Quantity = i+1,
                             ItemPrice = (i+1) * 10 ,
                             Amount = (i+1) * 10
+
                         }
                     }
                 };
