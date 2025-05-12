@@ -1,10 +1,9 @@
 // QB_Invoices_Test/InvoicesComparatorTests.cs
 using System.Diagnostics;
 using Serilog;
-using QB_Invoices_Lib;         // assumes InvoicesComparator lives here
+using QB_Invoices_Lib;          // assumes InvoicesComparator lives here
 using QBFC16Lib;
 using static QB_Invoices_Test.CommonMethods;
-using System.Runtime.CompilerServices;
 
 namespace QB_Invoices_Test
 {
@@ -29,6 +28,7 @@ namespace QB_Invoices_Test
             Log.Information("First Compare:");
 
             foreach (var inv in firstCompare.Where(i => initialInvoices.Any(x => x.InvoiceNumber == i.InvoiceNumber)))
+
                 Assert.Equal(InvoiceStatus.Added, inv.Status);
 
             // 3️⃣  Mutate data set → Missing, Different, Unchanged scenarios
@@ -56,6 +56,7 @@ namespace QB_Invoices_Test
                 .Select(init => firstCompare.FirstOrDefault(fc => fc.InvoiceNumber == init.InvoiceNumber))
                 .Where(fc => fc != null && !string.IsNullOrEmpty(fc.TxnID))
                 .ToList();
+
                 if (added.Count > 0)
                 {
                     using var qb = new QuickBooksSession(AppConfig.QB_APP_NAME);
@@ -73,6 +74,7 @@ namespace QB_Invoices_Test
             var logs = File.ReadAllText(logFile);
 
             Assert.Contains("InvoicesComparator Initialized", logs);
+
             Assert.Contains("InvoicesComparator Completed", logs);
 
             void AssertStatusLogged(IEnumerable<Invoice> list)
