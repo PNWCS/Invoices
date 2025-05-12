@@ -1,10 +1,10 @@
 // QB_Invoices_Test/InvoicesComparatorTests.cs
 using System.Diagnostics;
 using Serilog;
-using QB_Invoices_Lib;
-using QB_Invoices_Lib.Compare;           // assumes InvoicesComparator lives here
+using QB_Invoices_Lib;         // assumes InvoicesComparator lives here
 using QBFC16Lib;
 using static QB_Invoices_Test.CommonMethods;
+using System.Runtime.CompilerServices;
 
 namespace QB_Invoices_Test
 {
@@ -25,6 +25,7 @@ namespace QB_Invoices_Test
             var initialInvoices = BuildRandomInvoices(5);
 
             // 2️⃣  FIRST compare – every invoice should be Added ➜ QB
+
             var firstCompare = InvoicesComparator.CompareInvoices(initialInvoices);
 
             foreach (var inv in firstCompare.Where(i => initialInvoices.Any(x => x.CompanyID == i.CompanyID)))
@@ -33,25 +34,30 @@ namespace QB_Invoices_Test
             // 3️⃣  Mutate data set → Missing, Different, Unchanged scenarios
             var updatedInvoices = new List<Invoice>(initialInvoices);
 
-            var missingInv  = updatedInvoices[0];                 // simulate “Missing”
-            var diffInv     = updatedInvoices[1];                 // simulate “Different”
-            updatedInvoices.Remove(missingInv);
+
+            var missingInv = updatedInvoices[0];                 // simulate “Missing”
+            var diffInv = updatedInvoices[1];                 // simulate “Different”
+            updatedInvoices.RemoveAt(0);
             diffInv.Memo += " – edited";                          // trivial change
 
-            // 4️⃣  SECOND compare – verify status transitions
+            // Fix for CS8621: Ensure that the lambda expression explicitly handles nullability of InvoiceNumber.
             var secondCompare = InvoicesComparator.CompareInvoices(updatedInvoices)
-                                                   .ToDictionary(i => i.CompanyID);
+                                                  .ToDictionary(i => i.InvoiceNumber ?? string.Empty, i => i);
 
-            Assert.Equal(InvoiceStatus.Missing,   secondCompare[missingInv.CompanyID].Status);
-            Assert.Equal(InvoiceStatus.Different, secondCompare[diffInv.     CompanyID].Status);
+            Assert.Equal(InvoiceStatus.Missing, secondCompare[missingInv.InvoiceNumber].Status);
+            Assert.Equal(InvoiceStatus.Different, secondCompare[diffInv.InvoiceNumber].Status);
 
-            foreach (var inv in updatedInvoices.Where(i => i.CompanyID != diffInv.CompanyID))
-                Assert.Equal(InvoiceStatus.Unchanged, secondCompare[inv.CompanyID].Status);
+            foreach (var inv in updatedInvoices.Where(i => i.InvoiceNumber != diffInv.InvoiceNumber))
+                Assert.Equal(InvoiceStatus.Unchanged, secondCompare[inv.InvoiceNumber].Status);
 
             // 5️⃣  Clean-up – delete test invoices from QB
             try
             {
-                var added = firstCompare.Where(i => !string.IsNullOrEmpty(i.TxnID)).ToList();
+                var added = initialInvoices
+                .Select(init => firstCompare.FirstOrDefault(fc => fc.InvoiceNumber == init.InvoiceNumber))
+                .Where(fc => fc != null && !string.IsNullOrEmpty(fc.TxnID))
+                .ToList();
+
                 if (added.Count > 0)
                 {
                     using var qb = new QuickBooksSession(AppConfig.QB_APP_NAME);
@@ -69,7 +75,8 @@ namespace QB_Invoices_Test
             var logs = File.ReadAllText(logFile);
 
             Assert.Contains("InvoicesComparator Initialized", logs);
-            Assert.Contains("InvoicesComparator Completed",   logs);
+
+            Assert.Contains("InvoicesComparator Completed", logs);
 
             void AssertStatusLogged(IEnumerable<Invoice> list)
             {
@@ -91,21 +98,24 @@ namespace QB_Invoices_Test
                 string companyId = Guid.NewGuid().ToString("N").Substring(0, 8);
                 var inv = new Invoice
                 {
-                    CompanyID      = companyId,
-                    CustomerName   = TEST_CUSTOMER,
-                    InvoiceDate    = DateTime.Today,
-                    InvoiceNumber  = $"SYNC-{rand.Next(10000, 99999)}",
-                    Memo           = "Auto-generated test invoice",
-                    InoviceAmount  = 100 + i,
-                    BalanceRemaining = 100 + i,
+
+                    CompanyID = Guid.NewGuid().ToString("N").Substring(0, 8),
+                    CustomerName = TEST_CUSTOMER,
+                    InvoiceDate = DateTime.Today,
+                    InvoiceNumber = $"SYNC-{rand.Next(10000, 99999)}",
+                    Memo = "Auto-generated test invoice",
+                    InoviceAmount = (i + 1) * 10,
+                    BalanceRemaining = (i + 1) * 10,
                     LineItems = new List<InvoiceLineItemDto>
                     {
                         new InvoiceLineItemDto
                         {
                             ItemName = "TestItem",
-                            Quantity = 1,
-                            ItemPrice = 100 + i,
-                            Amount = 100 + i
+
+                            Quantity = i+1,
+                            ItemPrice = (i+1) * 10 ,
+                            Amount = (i+1) * 10
+
                         }
                     }
                 };
